@@ -8,17 +8,14 @@
    【この掲示板のテーマ】<br>
     好きな食べ物を一つ書いてください！<br><br>
     <?php
-    //データベース接続設定
-
+    //データベース接続設定開始
     $dsn = 'mysql:dbname=データベース名;host=localhost';
     $user = 'ユーザー名';
     $password = 'パスワード';
     $pdo = new PDO($dsn, $user, $password, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_WARNING));
+    //データベース接続設定終了	
 
-
-
-	//echo "テーブル作成開始<br>";	
-    //データベース内にテーブルを作成
+    //データベース内にテーブルを作成開始
     $sql = "CREATE TABLE IF NOT EXISTS mission5_1_3_1"
     ." ("
 	. "id INT AUTO_INCREMENT PRIMARY KEY,"
@@ -29,25 +26,26 @@
 	.");";
 	$stmt = $pdo->query($sql);
 	//echo "完了<br><br><br>";
-
+　　//データベース内にテーブルを作成終了
+	
       //編集
-     if(isset($_POST['edit'])){
-              $edi_num = $_POST['edi_num'];//編集番号を取得
-              $f_password = $_POST['pass_3'];
-              //もし編集番号が空でなく、パスワードがあっていたら以下を実行
-              if($edi_num != null && $f_password == "pass"){
-                	$sql = 'SELECT * FROM mission5_1_3_1';
-                   	$stmt = $pdo->query($sql);
-                	$results = $stmt->fetchAll();
-                		foreach ($results as $row){
-                		     if($row['id'] == $edi_num && $row['pass'] == $f_password){
-                             $edi_name = $row['name'];
-                             $edi_comments = $row['comment'];
-                         
-                              }
-                        }
-                }  
-      }
+    if(isset($_POST['edit'])){
+        $edi_num = $_POST['edi_num'];//編集番号を取得
+        $f_password = $_POST['pass_3'];
+        $sql = 'SELECT * FROM mission5_1_3_1';
+        $stmt = $pdo->query($sql);
+        $results = $stmt->fetchAll();
+        foreach ($results as $row){
+            if($row['id'] == $edi_num ){
+                $edi_password = $row['pass'];
+            }
+        }
+         //もし編集番号が空でなく、パスワードがあっていたら以下を実行
+        if($edi_num != null && $edi_password == $f_password){
+            $edi_name = $row['name'];
+            $edi_comments = $row['comment'];
+         }  
+    }
 
     ?> 
     
@@ -59,10 +57,10 @@
     <!--入力フォーム-->
     <form action="" method="post"><!--action属性なし(送信先)、method="post" は本文がそのまま送信-->
 
-        【投稿フォーム】<?php if($edi_num){echo "（編集モード）";}   ?><br>
-        <input type="hidden" name="edit_post" value="<?php echo $edi_num; ?>">
-        名前：　　　　　<input type="text" name="name" placeholder="名前を入力してください" value="<?php echo $edi_name; ?>"><br><!--type=""text"は1行のテキストボックス 名前はstr-->
-        コメント：　　　<input type="text" name="comment" placeholder="コメントを入力してください"  value="<?php echo $edi_comments; ?>"><br>
+        【投稿フォーム】<?php if(isset($edi_num)){echo "（編集モード）";}   ?><br>
+        <input type="hidden" name="edit_post" value="<?php if(isset($edi_num)){echo $edi_num;} ?>">
+        名前：　　　　　<input type="text" name="name" placeholder="名前を入力してください" value="<?php if(isset($edi_name)){echo $edi_name;} ?>"><br><!--type=""text"は1行のテキストボックス 名前はstr-->
+        コメント：　　　<input type="text" name="comment" placeholder="コメントを入力してください"  value="<?php if(isset($edi_comments)){echo $edi_comments; }?>"><br>
         パスワード：　　<input type="password" name="pass_1" placeholder="パスワード"><br>
         <input type="submit" name="submit"><br><br>
     
@@ -105,7 +103,6 @@
     
     
     //フォームに入力された内容を受信、年月日時分秒設定
-    $f_date = date("Y/m/d H:i:s");//年月日時分秒
     if(isset($_POST['edit'])){
             if($edi_num == null){
                          echo "<--------------------->";
@@ -119,7 +116,7 @@
                          echo "パスワードを入力してください";
                          echo "<br>";
                          echo "<--------------------->";   
-             }elseif($f_password != "pass"){
+             }elseif($f_password != $edi_password){
                          echo "<--------------------->";
                          echo "<br>";
                          echo "パスワードが違います";
@@ -140,132 +137,161 @@
        
        //もし編集番号が空でなかったら以下を実行
        if($after_edi_num != null){
-        //bindParamの引数（:nameなど）は4-2でどんな名前のカラムを設定したかで変える必要がある。
-     	$id = $after_edi_num; //変更する投稿番号
-    	$name = $after_edi_name;
-    	$comment = $after_edi_comment; //変更したい名前、変更したいコメントは自分で決めること
-    	$date = date("Y/m/d H:i:s");//年月日時分秒
-    	$sql = 'UPDATE mission5_1_3_1 SET name=:name,comment=:comment,date=:date WHERE id=:id';
-    	$stmt = $pdo->prepare($sql);
-    	$stmt->bindParam(':name', $name, PDO::PARAM_STR);
-    	$stmt->bindParam(':comment', $comment, PDO::PARAM_STR);
-    	$stmt->bindParam(':date', $date, PDO::PARAM_STR);
-    	$stmt->bindParam(':id', $id, PDO::PARAM_INT);
-    	$stmt->execute();
+        if($after_edi_name != null && $after_edi_comment != null && $f_password != null){
+            $id = $after_edi_num; //変更する投稿番号
+        	$name = $after_edi_name;
+    	    $comment = $after_edi_comment; //変更したい名前、変更したいコメントは自分で決めること
+         	$date = date("Y/m/d H:i:s");//年月日時分秒
+    	    $pass = $f_password;
     	
+        	//編集　　bindParamの引数（:nameなど）は4-2でどんな名前のカラムを設定したかで変える必要がある。
+        	$sql = 'UPDATE mission5_1_3_1 SET name=:name,comment=:comment,date=:date,pass=:pass WHERE id=:id';
+        	$stmt = $pdo->prepare($sql);
+        	$stmt->bindParam(':name', $name, PDO::PARAM_STR);
+        	$stmt->bindParam(':comment', $comment, PDO::PARAM_STR);
+        	$stmt->bindParam(':date', $date, PDO::PARAM_STR);
+        	$stmt->bindParam(':pass', $pass, PDO::PARAM_STR);
+        	$stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        	$stmt->execute();
+        	//編集終了
     	
-	    //入力したデータレコードを抽出し，表示する
-        //$rowの添字（[ ]内）は、カラムの名称に併せる必要がある
-        //echo "データレコードを抽出し，表示開始<br>";	
-        $sql = 'SELECT * FROM mission5_1_3_1';
-        $stmt = $pdo->query($sql);
-        $results = $stmt->fetchAll();
-        echo "--------------------<br>";
-        echo "【編集後の投稿一覧】<br>";
-        foreach ($results as $row){
-     	   	//$rowの中にはテーブルのカラム名が入る
-    	   	echo $row['id'].',';
-     	   	echo $row['name'].',';
-     	   	echo $row['comment'].',';
-     	   	echo $row['date'].'<br>';		
+	        //入力したデータレコードを抽出し，表示する
+            //$rowの添字（[ ]内）は、カラムの名称に併せる必要がある
+            //echo "データレコードを抽出し，表示開始<br>";	
+            $sql = 'SELECT * FROM mission5_1_3_1';
+            $stmt = $pdo->query($sql);
+            $results = $stmt->fetchAll();
+            echo "--------------------<br>";
+            echo "【編集後の投稿一覧】<br>";
+            foreach ($results as $row){
+     	      	//$rowの中にはテーブルのカラム名が入る
+        	   	echo $row['id'].',';
+     	     	echo $row['name'].',';
+     	    	echo $row['comment'].',';
+     	    	echo $row['date'].'<br>';		
         
-        }
-        echo "--------------------<br>";
-    	
+             }
+             echo "--------------------<br>";
+        }elseif($after_edi_name == null){
+                    echo "<--------------------->";
+                    echo "<br>";
+                    echo "名前を入力してください";
+                    echo "<br>";
+                    echo "<--------------------->";
+            }elseif($after_edi_comment == null){
+                    echo "<--------------------->";
+                    echo "<br>";
+                    echo "コメントを入力してください";
+                    echo "<br>";
+                    echo "<--------------------->";
+            }elseif($f_password == null){
+                    echo "<--------------------->";
+                    echo "<br>";
+                    echo "パスワードを入力してください";
+                    echo "<br>";
+                    echo "<--------------------->";
+            }		
     	
     	
     	
     	
     	
         //テーブルに内容を追記
-       }elseif($after_edi_num == null && $f_name != null && $f_comment != null && $f_password == "pass"){//もしnameとcommentが空じゃないとき以下の動作
-           // echo "データ入力開始<br>";
-        	$sql = $pdo -> prepare("INSERT INTO mission5_1_3_1 (name, comment, date, pass) VALUES (:name, :comment, :date, :pass)");
-            $sql -> bindParam(':name', $name, PDO::PARAM_STR);
-            $sql -> bindParam(':comment', $comment, PDO::PARAM_STR);
-            $sql -> bindParam(':date', $date, PDO::PARAM_STR);
-	        $sql -> bindParam(':pass', $pass, PDO::PARAM_STR);
-	        $name = $f_name;
-	        $comment = $f_comment; //好きな名前、好きな言葉は自分で決めること
-	        $date = $f_date;
-	        $pass = $f_password;
-	        $sql -> execute();
-	        //  echo "完了<br><br><br>";
+       }elseif($after_edi_num == null){//もしnameとcommentが空じゃないとき以下の動作
+             if($f_name != null && $f_comment != null){
+             // echo "データ入力開始<br>";
+             	$sql = $pdo -> prepare("INSERT INTO mission5_1_3_1 (name, comment, date, pass) VALUES (:name, :comment, :date, :pass)");
+                $sql -> bindParam(':name', $name, PDO::PARAM_STR);
+                $sql -> bindParam(':comment', $comment, PDO::PARAM_STR);
+                $sql -> bindParam(':date', $date, PDO::PARAM_STR);
+	            $sql -> bindParam(':pass', $pass, PDO::PARAM_STR);
+	            $name = $f_name;
+	            $comment = $f_comment; //好きな名前、好きな言葉は自分で決めること
+	            $date = $f_date;
+	            $pass = $f_password;
+	            $sql -> execute();
+	            //  echo "完了<br><br><br>";
 	        
 	        
-	        //入力したデータレコードを抽出し，表示する
-         	//$rowの添字（[ ]内）は、カラムの名称に併せる必要がある
-         	//echo "データレコードを抽出し，表示開始<br>";	
-        	$sql = 'SELECT * FROM mission5_1_3_1';
-        	$stmt = $pdo->query($sql);
-        	$results = $stmt->fetchAll();
-            echo "--------------------<br>";
-            echo "【追記後の投稿一覧】<br>";
-        	foreach ($results as $row){
-     	    	//$rowの中にはテーブルのカラム名が入る
-    	     	echo $row['id'].',';
-     	    	echo $row['name'].',';
-     	    	echo $row['comment'].',';
-     	    	echo $row['date'].'<br>';		
+	            //入力したデータレコードを抽出し，表示する
+            	//$rowの添字（[ ]内）は、カラムの名称に併せる必要がある
+             	//データレコードを抽出し，表示	
+            	$sql = 'SELECT * FROM mission5_1_3_1';
+             	$stmt = $pdo->query($sql);
+            	$results = $stmt->fetchAll();
+                echo "--------------------<br>";
+                echo "【追記後の投稿一覧】<br>";
+            	foreach ($results as $row){
+     	        	//$rowの中にはテーブルのカラム名が入る
+    	        	echo $row['id'].',';
+     	        	echo $row['name'].',';
+     	        	echo $row['comment'].',';
+     	        	echo $row['date'].'<br>';		
             
-        	}
-        	echo "--------------------<br>";
-	        //echo "完了<br><br><br>";
-        }elseif($f_name == null){
+        	    }
+        	    echo "--------------------<br>";
+		//データを
+	        }elseif($f_name == null){
                     echo "<--------------------->";
                     echo "<br>";
                     echo "名前を入力してください";
                     echo "<br>";
                     echo "<--------------------->";
-        }elseif($f_comment == null){
+            }elseif($f_comment == null){
                     echo "<--------------------->";
                     echo "<br>";
                     echo "コメントを入力してください";
                     echo "<br>";
                     echo "<--------------------->";
-        }elseif($f_password == null){
+            }elseif($f_password == null){
                     echo "<--------------------->";
                     echo "<br>";
                     echo "パスワードを入力してください";
                     echo "<br>";
                     echo "<--------------------->";
-        }elseif($f_password != "pass"){
-                    echo "<--------------------->";
-                    echo "<br>";
-                    echo "パスワードが違います";
-                    echo "<br>";
-                    echo "<--------------------->";
+            }    
         }
        
     }elseif(isset($_POST['delete'])) {
         $f_password = $_POST['pass_2'];
         $del_num = $_POST["del_num"];
-        if($del_num != null && $f_password == "pass"){
         
-        $id = $del_num;
-     	$sql = 'delete from mission5_1_3_1 where id=:id';
-    	$stmt = $pdo->prepare($sql);
-    	$stmt->bindParam(':id', $id, PDO::PARAM_INT);
-    	$stmt->execute();
-        //入力したデータレコードを抽出し，表示する
-	    //$rowの添字（[ ]内）は、カラムの名称に併せる必要がある
-    	//echo "データレコードを抽出し，表示開始<br>";	
-    	$sql = 'SELECT * FROM mission5_1_3_1';
-    	$stmt = $pdo->query($sql);
-     	$results = $stmt->fetchAll();
-     	echo "--------------------<br>";
-        echo "【削除後の投稿一覧】<br>";
-    	foreach ($results as $row){
-	    	//$rowの中にはテーブルのカラム名が入る
-     		echo $row['id'].',';
-    		echo $row['name'].',';
-	    	echo $row['comment'].',';
-	    	echo $row['date'].'<br>';		
+        $sql = 'SELECT * FROM mission5_1_3_1';
+        $stmt = $pdo->query($sql);
+        $results = $stmt->fetchAll();
+        foreach ($results as $row){
+            if($row['id'] == $del_num ){
+                $del_password = $row['pass'];
+            }
+        }
         
-    	}
-    	echo "--------------------<br>";
-	//echo "完了<br><br><br>";
-       }elseif($del_num == null){
+        
+        if($del_num != null && $f_password == $del_password){
+        
+            $id = $del_num;
+         	$sql = 'delete from mission5_1_3_1 where id=:id';
+        	$stmt = $pdo->prepare($sql);
+        	$stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        	$stmt->execute();
+            //入力したデータレコードを抽出し，表示する
+	        //$rowの添字（[ ]内）は、カラムの名称に併せる必要がある
+        	//echo "データレコードを抽出し，表示開始<br>";	
+        	$sql = 'SELECT * FROM mission5_1_3_1';
+        	$stmt = $pdo->query($sql);
+        	$results = $stmt->fetchAll();
+         	echo "--------------------<br>";
+            echo "【削除後の投稿一覧】<br>";
+        	foreach ($results as $row){
+	        	//$rowの中にはテーブルのカラム名が入る
+         		echo $row['id'].',';
+        		echo $row['name'].',';
+	        	echo $row['comment'].',';
+	        	echo $row['date'].'<br>';		
+        
+        	}
+        	echo "--------------------<br>";
+    	//echo "完了<br><br><br>";
+        }elseif($del_num == null){
                 echo "<--------------------->";
                 echo "<br>";
                 echo "削除番号を入力してください";
@@ -277,14 +303,13 @@
                 echo "パスワードを入力してください";
                 echo "<br>";
                 echo "<--------------------->";
-        }elseif($f_password != "pass"){
+        }elseif($f_password != $del_password){
                 echo "<--------------------->";
                 echo "<br>";
                 echo "パスワードが違います";
                 echo "<br>";
                 echo "<--------------------->";
-        }
-    
+	}
     }
 
         
