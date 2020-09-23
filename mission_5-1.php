@@ -8,14 +8,17 @@
    【この掲示板のテーマ】<br>
     好きな食べ物を一つ書いてください！<br><br>
     <?php
-    //データベース接続設定開始
+    //データベース接続設定
+
     $dsn = 'mysql:dbname=データベース名;host=localhost';
     $user = 'ユーザー名';
     $password = 'パスワード';
     $pdo = new PDO($dsn, $user, $password, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_WARNING));
-    //データベース接続設定終了	
 
-    //データベース内にテーブルを作成開始
+
+
+	//echo "テーブル作成開始<br>";	
+    //データベース内にテーブルを作成
     $sql = "CREATE TABLE IF NOT EXISTS mission5_1_3_1"
     ." ("
 	. "id INT AUTO_INCREMENT PRIMARY KEY,"
@@ -26,8 +29,7 @@
 	.");";
 	$stmt = $pdo->query($sql);
 	//echo "完了<br><br><br>";
-　　//データベース内にテーブルを作成終了
-	
+
       //編集
     if(isset($_POST['edit'])){
         $edi_num = $_POST['edi_num'];//編集番号を取得
@@ -215,7 +217,7 @@
 	        
 	            //入力したデータレコードを抽出し，表示する
             	//$rowの添字（[ ]内）は、カラムの名称に併せる必要がある
-             	//データレコードを抽出し，表示	
+             	//echo "データレコードを抽出し，表示開始<br>";	
             	$sql = 'SELECT * FROM mission5_1_3_1';
              	$stmt = $pdo->query($sql);
             	$results = $stmt->fetchAll();
@@ -230,7 +232,6 @@
             
         	    }
         	    echo "--------------------<br>";
-		//データを
 	        }elseif($f_name == null){
                     echo "<--------------------->";
                     echo "<br>";
@@ -249,7 +250,7 @@
                     echo "パスワードを入力してください";
                     echo "<br>";
                     echo "<--------------------->";
-            }    
+            }    //echo "完了<br><br><br>";
         }
        
     }elseif(isset($_POST['delete'])) {
@@ -309,7 +310,8 @@
                 echo "パスワードが違います";
                 echo "<br>";
                 echo "<--------------------->";
-	}
+        }
+    
     }
 
         
